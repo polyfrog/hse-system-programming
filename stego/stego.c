@@ -33,8 +33,9 @@ int main(int argc, char* argv[])
     const long file_size = ftell(file);
     fseek(file, 0, SEEK_SET);
 
-    char data[file_size];
-    memset(data, 0, file_size);
+    char *data;
+    data = malloc(file_size);
+
     char magic_numbers[MAGIC_NUM_BYTES] = {0};
     char expected_magic_numbers[MAGIC_NUM_BYTES] = {0xFF, 0xD8, 0xFF};
     char end_sequence[2] = {0xFF, 0xD9};
@@ -58,7 +59,7 @@ int main(int argc, char* argv[])
     long int total_jpeg_bytes = 0;
     int flag = 0;
 
-    for (int i; i < sizeof(data) - 1; i++) {
+    for (int i = 0; i < file_size - 1; i++) {
         char sequence[2] = {data[i], data[i + 1]};
         if (memcmp(sequence, end_sequence, 2) == 0) {
             total_jpeg_bytes = i + 2;
@@ -72,13 +73,15 @@ int main(int argc, char* argv[])
         file = fopen(filename, "a");
         fputs(message, file);
     } else if (strcmp(operation, READ_MESSAGE) == 0) {
-        for (int i = total_jpeg_bytes; i < sizeof(data); i++) {
+        for (int i = total_jpeg_bytes; i < file_size; i++) {
             printf("%c", data[i]);
         }
         printf("\n");
     } else if (strcmp(operation, REMOVE_MESSAGE) == 0) {
         truncate(filename, total_jpeg_bytes);
     }
+
+    free(data);
 
     return 0;
 }
